@@ -1,0 +1,21 @@
+# Save a project-specific copy of this file as:
+#   <project>/.persona-bridge.yaml
+#
+# Purpose:
+# - declare optional upstream persona libraries
+# - keep the bundled role cards as the low-context default
+# - allow full upstream reads only when needed
+# - extend a curated subset instead of pretending every upstream role is mirrored
+
+selection:
+  prefer_bundled_role_cards: true
+  allow_upstream_full_read: on_demand
+  max_personas_default: 3
+
+libraries:
+  - id: aiox-local
+    enabled: true
+    family: aiox
+    root: <path-to-your-aiox-core-clone>
+    notes: Local clone used only as an optional enrichment source.
+    cards_are_authoritative: false

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Skills Hub Manager</title>
+<style>
+  :root {
+    --bg: #1a1b2e;
+    --bg2: #232540;
+    --bg3: #2a2d4a;
+    --fg: #e2e4f0;
+    --fg2: #9a9cb8;
+    --accent: #7c6ff7;
+    --accent2: #5b50d6;
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --red: #f87171;
+    --orange: #fb923c;
+    --border: #3a3d5c;
+    --radius: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--fg2);
+  }
+  .stats span { display: flex; align-items: center; gap: 4px; }
+  .stat-num { color: var(--accent); font-weight: 600; }
+
+  /* Legend */
+  .legend {
+    padding: 8px 24px;
+    background: var(--bg3);
+    font-size: 12px;
+    color: var(--fg2);
+    display: flex;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .legend strong { color: var(--fg); }
+
+  .runtime-bar {
+    padding: 8px 24px;
+    background: rgba(251, 191, 36, 0.08);
+    border-bottom: 1px solid var(--border);
+    color: var(--fg2);
+    font-size: 12px;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .runtime-bar strong { color: #fcd34d; }
+  .runtime-mismatch { color: #fde68a; }
+
+  /* Toolbar */
+  .toolbar {
+    padding: 12px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-box {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: '\1F50D';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+  }
+
+  .project-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 360px;
+    flex: 1;
+  }
+  .project-box input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 13px;
+    outline: none;
+  }
+  .project-box input:focus { border-color: var(--accent); }
+  .project-hint {
+    font-size: 12px;
+    color: var(--fg2);
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg3);
+    color: var(--fg);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--accent2); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { border-color: var(--red); color: var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 110px);
+  }
+
+  .table-wrap {
+    flex: 1;
+    overflow: auto;
+    padding: 0 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  th {
+    background: var(--bg2);
+    padding: 10px 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--fg2);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; min-width: 220px; }
+  th.col-project { color: var(--orange); min-width: 56px; }
+  th.col-global { color: var(--accent); }
+
+  td {
+    padding: 8px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  td:first-child {
+    text-align: left;
+    cursor: pointer;
+  }
+  td:first-child:hover { color: var(--accent); }
+
+  tr:hover td { background: var(--bg3); }
+  tr.is-global td:first-child { color: var(--green); }
+  tr.has-changes td { background: rgba(124, 111, 247, 0.08); }
+
+  .skill-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .skill-name .badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .badge-global { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+  .badge-warn { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+
+  /* Checkbox custom */
+  .cb-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .cb-wrap input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .cb-wrap input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .cb-wrap input[type="checkbox"]:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .cb-wrap input[type="checkbox"].native-check:checked {
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  .cb-wrap input[type="checkbox"].global-check:checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .cb-wrap input[type="checkbox"]:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Detail panel */
+  .detail-panel {
+    border-top: 2px solid var(--border);
+    background: var(--bg2);
+    max-height: 280px;
+    overflow: auto;
+    padding: 16px 24px;
+    display: none;
+  }
+  .detail-panel.open { display: block; }
+  .detail-panel h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .detail-panel pre {
+    white-space: pre-wrap;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--fg2);
+    background: var(--bg);
+    padding: 12px;
+    border-radius: var(--radius);
+    max-height: 200px;
+    overflow: auto;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    padding: 12px 24px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .changes-info {
+    font-size: 13px;
+    color: var(--fg2);
+  }
+  .changes-info .count { color: var(--orange); font-weight: 600; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 500px;
+    max-width: 90vw;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 16px; }
+  .modal input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .modal input[type="text"]:focus { border-color: var(--accent); }
+  .modal .btn-row { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal .status-msg {
+    font-size: 13px;
+    margin-bottom: 12px;
+    min-height: 20px;
+  }
+  .modal .status-msg.error { color: var(--red); }
+  .modal .status-msg.success { color: var(--green); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    z-index: 200;
+    animation: fadeIn 0.2s;
+    display: none;
+  }
+  .toast.show { display: block; }
+  .toast.success { background: rgba(74, 222, 128, 0.9); color: #111; }
+  .toast.error { background: rgba(248, 113, 113, 0.9); color: #111; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    color: var(--fg2);
+    font-size: 16px;
+  }
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI Skills Hub Manager</h1>
+  <div class="stats" id="stats">
+    <span><span class="stat-num" id="stat-total">-</span> skills</span>
+    <span><span class="stat-num" id="stat-global">-</span> globais</span>
+    <span>CL: <span class="stat-num" id="stat-claude">-</span></span>
+    <span>CX: <span class="stat-num" id="stat-codex">-</span></span>
+    <span>QW: <span class="stat-num" id="stat-qwen">-</span></span>
+    <span>AG: <span class="stat-num" id="stat-antigravity">-</span></span>
+  </div>
+</header>
+
+<div class="legend">
+  <span><strong>CL:</strong> Claude</span>
+  <span><strong>CX:</strong> Codex Legacy</span>
+  <span><strong>CU:</strong> Codex User</span>
+  <span><strong>QW:</strong> Qwen</span>
+  <span><strong>AG:</strong> Antigravity</span>
+  <span><strong>GL:</strong> Global</span>
+  <span><strong>Azul:</strong> instalacao nativa</span>
+  <span><strong>Verde:</strong> controlado por global</span>
+</div>
+
+<div class="runtime-bar" id="runtimeBar">
+  <span><strong>Runtime:</strong> carregando...</span>
+</div>
+
+<div class="toolbar">
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Buscar skills..." autocomplete="off">
+  </div>
+  <div class="project-box">
+    <input type="text" id="projectPath" placeholder="C:\\repo\\meu-projeto">
+  </div>
+  <button class="btn btn-primary" id="btnProjectInstall" onclick="installSelectedForProject()" disabled>Instalar 0 no Projeto</button>
+  <button class="btn" onclick="window.open('/claude-auth', '_blank')">Auth Claude</button>
+  <button class="btn" onclick="openGithubModal()">+ GitHub Import</button>
+  <button class="btn" onclick="loadStatus()">Recarregar</button>
+</div>
+<div class="runtime-bar">
+  <span class="project-hint">Selecione as skills na coluna <strong>PRJ</strong>, informe o caminho do projeto e instale.</span>
+</div>
+
+<div class="main-content">
+  <div class="table-wrap" id="tableWrap">
+    <div class="loading" id="loadingMsg">
+      <div class="spinner"></div>
+      Carregando skills...
+    </div>
+    <table id="skillsTable" style="display:none">
+      <thead>
+        <tr id="headerRow"></tr>
+      </thead>
+      <tbody id="skillsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="detail-panel" id="detailPanel">
+    <h3 id="detailTitle">-</h3>
+    <pre id="detailContent">Selecione uma skill para ver detalhes</pre>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="changes-info">
+      <span id="changesText">Nenhuma alteracao pendente</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-danger" id="btnDiscard" onclick="discardChanges()" disabled>Descartar</button>
+      <button class="btn btn-primary" id="btnApply" onclick="applyChanges()" disabled>Aplicar Alteracoes</button>
+    </div>
+  </div>
+</div>
+
+<!-- GitHub Import Modal -->
+<div class="modal-overlay" id="githubModal">
+  <div class="modal">
+    <h2>Importar Skill do GitHub</h2>
+    <input type="text" id="githubUrl" placeholder="https://github.com/user/skill-name">
+    <div class="status-msg" id="githubStatus"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeGithubModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btnImport" onclick="importFromGithub()">Importar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let state = null;
+let pendingChanges = {};
+const PROJECT_PATH_KEY = 'ai-skills-project-path';
+const projectSelections = new Set();
+
+function renderRuntime() {
+  const bar = document.getElementById('runtimeBar');
+  const runtime = state && state.runtime;
+  if (!runtime) {
+    bar.innerHTML = '<span><strong>Runtime:</strong> indisponivel</span>';
+    return;
+  }
+
+  const suspiciousRoots = ['AI-Skills-Hub\\\\tmp', 'tmp-profile', 'tmp-http-profile'];
+  const mismatchClass = suspiciousRoots.some(part => runtime.userProfileRoot.includes(part))
+    ? 'runtime-mismatch'
+    : '';
+  bar.innerHTML = `
+    <span><strong>PID:</strong> ${runtime.pid}</span>
+    <span><strong>UserProfile:</strong> <span class="${mismatchClass}">${runtime.userProfileRoot}</span></span>
+    <span><strong>AppData:</strong> ${runtime.roamingAppDataRoot}</span>
+    <span><strong>State:</strong> ${runtime.managedTargetsState}</span>
+  `;
+}
+const TARGET_LABELS = {
+  'claude': 'CL',
+  'codex-user': 'CU',
+  'codex-legacy': 'CX',
+  'qwen': 'QW',
+  'antigravity': 'AG'
+};
+const TARGET_ORDER = ['claude', 'codex-legacy', 'codex-user', 'qwen', 'antigravity'];
+
+async function api(endpoint, method = 'GET', body = null) {
+  const opts = { method, headers: {} };
+  if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(API + endpoint, opts);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+async function loadStatus() {
+  try {
+    document.getElementById('loadingMsg').style.display = 'flex';
+    document.getElementById('skillsTable').style.display = 'none';
+    state = await api('/api/status');
+    pendingChanges = {};
+    const validSkillNames = new Set(state.skills.map(skill => skill.name));
+    [...projectSelections].forEach(skillName => {
+      if (!validSkillNames.has(skillName)) {
+        projectSelections.delete(skillName);
+      }
+    });
+    renderRuntime();
+    renderTable();
+    updateStats();
+    updateChangeBar();
+    updateProjectAction();
+  } catch (e) {
+    toast('Erro ao carregar: ' + e.message, 'error');
+  } finally {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('skillsTable').style.display = '';
+  }
+}
+
+function renderTable() {
+  if (!state) return;
+  const headerRow = document.getElementById('headerRow');
+  headerRow.innerHTML = '<th>Skill</th><th class="col-project">PRJ</th>';
+  for (const t of TARGET_ORDER) {
+    if (state.targets.includes(t)) {
+      headerRow.innerHTML += `<th>${TARGET_LABELS[t] || t}</th>`;
+    }
+  }
+  headerRow.innerHTML += '<th class="col-global">GL</th>';
+
+  const tbody = document.getElementById('skillsBody');
+  const filter = document.getElementById('search').value.toLowerCase();
+  const skills = state.skills
+    .filter(s => !filter || s.name.toLowerCase().includes(filter))
+    .sort((a, b) => {
+      if (a.isGlobal && !b.isGlobal) return -1;
+      if (!a.isGlobal && b.isGlobal) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  tbody.innerHTML = '';
+  for (const skill of skills) {
+    const tr = document.createElement('tr');
+    if (skill.isGlobal) tr.classList.add('is-global');
+    const key = skill.name;
+    if (Object.keys(pendingChanges).some(k => k === `${skill.name}:global` || k.startsWith(`${skill.name}:`))) {
+      tr.classList.add('has-changes');
+    }
+
+    let badges = '';
+    if (skill.isGlobal) badges += '<span class="badge badge-global">GLOBAL</span>';
+    if (skill.broken) badges += '<span class="badge badge-warn" title="Junction quebrada">WARN</span>';
+
+    tr.innerHTML = `<td onclick="showDetail('${skill.name}')">
+      <div class="skill-name">
+        <span>${skill.name}</span>
+        ${badges}
+      </div>
+    </td>`;
+    tr.innerHTML += `<td><div class="cb-wrap">
+      <input type="checkbox" ${projectSelections.has(skill.name) ? 'checked' : ''}
+        title="Selecionar para instalar no projeto"
+        onchange="toggleProjectSelection('${skill.name}', this.checked)">
+    </div></td>`;
+
+    for (const t of TARGET_ORDER) {
+      if (!state.targets.includes(t)) continue;
+      const installed = getEffectiveState(skill, t);
+      const isNative = skill.isNative && skill.isNative[t];
+      const disabledByGlobal = getEffectiveGlobal(skill) && installed;
+      const disabled = disabledByGlobal;
+      const title = disabledByGlobal
+        ? 'Controlado pelo Global'
+        : isNative
+          ? 'Instalacao nativa; ao desmarcar, sera movida para backup e removida do target'
+          : '';
+      const cls = [];
+      if (installed && getEffectiveGlobal(skill)) cls.push('global-check');
+      else if (installed && isNative) cls.push('native-check');
+
+      tr.innerHTML += `<td><div class="cb-wrap">
+        <input type="checkbox" ${installed ? 'checked' : ''} ${disabled ? `disabled title="${title}"` : title ? `title="${title}"` : ''}
+          class="${cls.join(' ')}"
+          onchange="toggleTarget('${skill.name}', '${t}', this.checked)">
+      </div></td>`;
+    }
+
+    const isGl = getEffectiveGlobal(skill);
+    tr.innerHTML += `<td><div class="cb-wrap">
+      <input type="checkbox" ${isGl ? 'checked' : ''} class="${isGl ? 'global-check' : ''}"
+        onchange="toggleGlobal('${skill.name}', this.checked)">
+    </div></td>`;
+
+    tbody.appendChild(tr);
+  }
+}
+
+function updateProjectAction() {
+  const path = document.getElementById('projectPath').value.trim();
+  const btn = document.getElementById('btnProjectInstall');
+  btn.disabled = projectSelections.size === 0 || !path;
+  btn.textContent = `Instalar ${projectSelections.size} no Projeto`;
+}
+
+function toggleProjectSelection(skillName, checked) {
+  if (checked) {
+    projectSelections.add(skillName);
+  } else {
+    projectSelections.delete(skillName);
+  }
+  updateProjectAction();
+}
+
+function getEffectiveState(skill, target) {
+  const key = `${skill.name}:${target}`;
+  if (pendingChanges[key] !== undefined) return pendingChanges[key];
+  return skill.installed && skill.installed[target];
+}
+
+function getEffectiveGlobal(skill) {
+  const key = `${skill.name}:global`;
+  if (pendingChanges[key] !== undefined) return pendingChanges[key];
+  return skill.isGlobal;
+}
+
+function toggleTarget(skillName, target, checked) {
+  const skill = state.skills.find(s => s.name === skillName);
+  const original = skill.installed && skill.installed[target];
+  const key = `${skillName}:${target}`;
+  if (checked === original) {
+    delete pendingChanges[key];
+  } else {
+    pendingChanges[key] = checked;
+  }
+  renderTable();
+  updateChangeBar();
+}
+
+function toggleGlobal(skillName, checked) {
+  const skill = state.skills.find(s => s.name === skillName);
+  const original = skill.isGlobal;
+  const key = `${skillName}:global`;
+  if (checked === original) {
+    delete pendingChanges[key];
+    // also remove individual target changes for this skill
+    for (const t of TARGET_ORDER) {
+      delete pendingChanges[`${skillName}:${t}`];
+    }
+  } else {
+    pendingChanges[key] = checked;
+    // if enabling global, mark all targets too
+    if (checked) {
+      for (const t of TARGET_ORDER) {
+        if (state.targets.includes(t)) {
+          delete pendingChanges[`${skillName}:${t}`];
+        }
+      }
+    }
+  }
+  renderTable();
+  updateChangeBar();
+}
+
+function updateStats() {
+  if (!state) return;
+  document.getElementById('stat-total').textContent = state.skills.length;
+  document.getElementById('stat-global').textContent = state.skills.filter(s => s.isGlobal).length;
+  const countFor = t => state.skills.filter(s => s.installed && s.installed[t]).length;
+  document.getElementById('stat-claude').textContent = countFor('claude');
+  document.getElementById('stat-codex').textContent = countFor('codex-legacy');
+  document.getElementById('stat-qwen').textContent = countFor('qwen');
+  document.getElementById('stat-antigravity').textContent = countFor('antigravity');
+}
+
+function updateChangeBar() {
+  const n = Object.keys(pendingChanges).length;
+  document.getElementById('changesText').textContent = n === 0
+    ? 'Nenhuma alteracao pendente'
+    : `${n} alteracao(oes) pendente(s)`;
+  document.getElementById('btnApply').disabled = n === 0;
+  document.getElementById('btnDiscard').disabled = n === 0;
+}
+
+function discardChanges() {
+  pendingChanges = {};
+  renderTable();
+  updateChangeBar();
+  toast('Alteracoes descartadas');
+}
+
+async function applyChanges() {
+  const changes = Object.entries(pendingChanges);
+  if (changes.length === 0) return;
+
+  document.getElementById('btnApply').disabled = true;
+  document.getElementById('btnApply').textContent = 'Aplicando...';
+
+  try {
+    const globalChanges = changes.filter(([k]) => k.endsWith(':global'));
+    const targetChanges = changes.filter(([k]) => !k.endsWith(':global'));
+
+    // Process global toggles first
+    for (const [key, value] of globalChanges) {
+      const skill = key.replace(':global', '');
+      await api('/api/toggle-global', 'POST', { skill, enable: value });
+    }
+
+    if (targetChanges.length > 0) {
+      const touchedSkills = [...new Set(targetChanges.map(([key]) => key.split(':')[0]))];
+      for (const skillName of touchedSkills) {
+        const skill = state.skills.find(s => s.name === skillName);
+        const targets = [];
+        for (const t of TARGET_ORDER) {
+          if (!state.targets.includes(t)) continue;
+          if (getEffectiveState(skill, t)) {
+            targets.push(t);
+          }
+        }
+        await api('/api/set-managed-targets', 'POST', { skill: skillName, targets });
+      }
+    }
+
+    toast(`${changes.length} alteracao(oes) aplicadas com sucesso!`);
+    await loadStatus();
+  } catch (e) {
+    toast('Erro: ' + e.message, 'error');
+  } finally {
+    document.getElementById('btnApply').textContent = 'Aplicar Alteracoes';
+    document.getElementById('btnApply').disabled = Object.keys(pendingChanges).length === 0;
+  }
+}
+
+async function installSelectedForProject() {
+  const projectPath = document.getElementById('projectPath').value.trim();
+  const skills = [...projectSelections].sort();
+
+  if (!projectPath) {
+    toast('Informe o caminho do projeto', 'error');
+    return;
+  }
+  if (skills.length === 0) {
+    toast('Selecione ao menos uma skill para o projeto', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnProjectInstall');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Instalando...';
+
+  try {
+    const result = await api('/api/project-install', 'POST', { projectPath, skills });
+    localStorage.setItem(PROJECT_PATH_KEY, result.projectPath);
+    document.getElementById('projectPath').value = result.projectPath;
+    toast(`${skills.length} skill(s) instalada(s) em ${result.projectPath}`);
+  } catch (e) {
+    toast('Erro ao instalar no projeto: ' + e.message, 'error');
+  } finally {
+    btn.textContent = originalText;
+    updateProjectAction();
+  }
+}
+
+async function showDetail(name) {
+  const panel = document.getElementById('detailPanel');
+  panel.classList.add('open');
+  document.getElementById('detailTitle').textContent = name;
+  document.getElementById('detailContent').textContent = 'Carregando...';
+  try {
+    const data = await api(`/api/skill-detail/${encodeURIComponent(name)}`);
+    document.getElementById('detailContent').textContent = data.content || '(sem conteudo)';
+  } catch (e) {
+    document.getElementById('detailContent').textContent = 'Erro: ' + e.message;
+  }
+}
+
+// GitHub Import
+function openGithubModal() {
+  document.getElementById('githubModal').classList.add('open');
+  document.getElementById('githubUrl').value = '';
+  document.getElementById('githubStatus').textContent = '';
+  document.getElementById('githubUrl').focus();
+}
+function closeGithubModal() {
+  document.getElementById('githubModal').classList.remove('open');
+}
+async function importFromGithub() {
+  const url = document.getElementById('githubUrl').value.trim();
+  if (!url) return;
+  const statusEl = document.getElementById('githubStatus');
+  const btn = document.getElementById('btnImport');
+  statusEl.className = 'status-msg';
+  statusEl.textContent = 'Importando...';
+  btn.disabled = true;
+  try {
+    const result = await api('/api/github-import', 'POST', { url });
+    statusEl.className = 'status-msg success';
+    statusEl.textContent = `Importada: ${result.name} - ${result.description || '(sem descricao)'}`;
+    setTimeout(() => {
+      closeGithubModal();
+      loadStatus();
+    }, 1500);
+  } catch (e) {
+    statusEl.className = 'status-msg error';
+    statusEl.textContent = 'Erro: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Search
+document.getElementById('search').addEventListener('input', () => renderTable());
+document.getElementById('projectPath').addEventListener('input', e => {
+  localStorage.setItem(PROJECT_PATH_KEY, e.target.value);
+  updateProjectAction();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeGithubModal();
+    document.getElementById('detailPanel').classList.remove('open');
+  }
+  if (e.key === '/' && !e.ctrlKey && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
+});
+
+// Init
+document.getElementById('projectPath').value = localStorage.getItem(PROJECT_PATH_KEY) || '';
+loadStatus();
+updateProjectAction();
+</script>
+</body>
+</html>

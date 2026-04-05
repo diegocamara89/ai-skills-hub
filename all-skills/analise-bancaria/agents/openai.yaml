@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analise Bancaria"
+  short_description: "Analise forense de extratos e fluxos bancarios"
+  default_prompt: "Use esta skill para analisar extratos e movimentacoes bancarias, identificar padroes suspeitos, cruzar evidencias financeiras e gerar laudo tecnico em .docx quando solicitado."

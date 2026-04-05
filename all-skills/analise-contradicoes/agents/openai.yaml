@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analise de Contradicoes"
+  short_description: "Confronta depoimentos e provas com matriz tecnica"
+  default_prompt: "Use esta skill para extrair assertivas, confrontar depoimentos com provas materiais e digitais, classificar contradicoes por impacto e montar roteiro de reperguntas."

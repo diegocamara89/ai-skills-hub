@@ -1,0 +1,58 @@
+# Estado e sessões (dados de runtime, não versionáveis)
+state/
+
+# Exportações e backups
+exports/
+backups/
+backups-desktop-legacy/
+
+# Diretórios temporários
+tmp-*/
+
+# Prompts temporários de LLM
+gemini_*.txt
+
+# Credenciais e tokens OAuth
+*.credentials.json
+.credentials.json
+auth.json
+*.token
+*.tokens
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Cache de testes
+.pytest_cache/
+
+# Bancos de dados locais
+*.sqlite
+*.db
+
+# Python venvs
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Node modules
+node_modules/
+
+# Skill com junction circular (corrompida)
+all-skills/relatorio-final-ip/
+
+# Syncthing metadata
+.stfolder/
+.stignore
+
+# Guias pessoais de instalação (notas internas)
+codex-plugin-install-guide.md
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini

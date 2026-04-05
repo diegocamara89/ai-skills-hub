@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cerebro Policial Obsidian"
+  short_description: "Mantem a camada quente de casos ativos em vault policial sem poluir o acervo global"
+  default_prompt: "Use esta skill para ativar, sincronizar ou arquivar dossies de casos ativos em vaults Obsidian policiais autorizados, vinculando pecas com evidencia concreta e preservando BOs e Entidades como base global."
