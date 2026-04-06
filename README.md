@@ -267,3 +267,29 @@ Detalhamento completo em `all-skills/orchestrate/references/claude-auth-control-
 - Edite skills sempre em `all-skills/`, nunca direto no destino nativo se ele for junction.
 - Use `reconcile` depois de alterar selecao global ou estado gerenciado.
 - Para PowerShell com politica restritiva, prefira `powershell -ExecutionPolicy Bypass -File ...` ao rodar wrappers `.ps1`.
+
+## Troubleshooting
+
+### Skill marcada como global/instalada na UI mas nao aparece no Claude Code
+
+**Sintoma:** O gerenciador mostra a skill como ativa, mas ao tentar chamar `/skill-name` no Claude Code ele diz que nao encontrou.
+
+**Causa:** O gerenciador **nao sincroniza automaticamente ao iniciar**. As junctions no sistema de arquivos so sao (re)criadas quando voce interage com a UI (instalar, desinstalar, toggle global). Se o hub foi movido de pasta, ou se as junctions foram perdidas por qualquer motivo, o estado JSON fica correto mas os arquivos ficam desatualizados.
+
+**Solucao — uma unica vez resolve:**
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File "C:\Users\marce\Diego\AI-Skills-Hub\manage-skills.ps1" reconcile
+```
+
+Depois reinicie o Claude Code para ele recarregar as skills.
+
+**Quando rodar reconcile novamente?** Somente se voce mover o hub de pasta novamente, ou se perceber que junctions sumiram. Em uso normal (adicionar/remover skills pela UI), voce **nao precisa rodar reconcile manualmente** — a UI ja faz isso automaticamente.
+
+### Hub foi movido de pasta e skills sumiram em massa
+
+Se voce moveu a pasta `AI-Skills-Hub` de lugar (ex: `Desktop` para `Diego`), as junctions antigas apontam para o caminho antigo e quebram. Rode `reconcile` uma unica vez para recriar tudo:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File "<novo-caminho>\AI-Skills-Hub\manage-skills.ps1" reconcile
+```

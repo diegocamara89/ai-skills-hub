@@ -663,8 +663,21 @@ function Get-CodexRateLimits {
 
     if (-not $latestFile) { return $null }
 
-    # Ler o arquivo de trás para frente procurando evento token_count com rate_limits
-    $lines = [System.IO.File]::ReadAllLines($latestFile.FullName)
+    # Ler o arquivo com compartilhamento de leitura (FileShare.ReadWrite) para evitar
+    # erro quando o arquivo está sendo gravado pelo processo Codex
+    try {
+        $stream = [System.IO.File]::Open($latestFile.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $reader = New-Object System.IO.StreamReader($stream)
+        $lines = @()
+        while (-not $reader.EndOfStream) {
+            $lines += $reader.ReadLine()
+        }
+        $reader.Close()
+        $stream.Close()
+    } catch {
+        return $null
+    }
+
     for ($i = $lines.Count - 1; $i -ge 0; $i--) {
         $line = $lines[$i]
         if ($line -notmatch '"rate_limits"') { continue }
