@@ -1,0 +1,171 @@
+selector_version: 2
+catalog_scope: curated_aiox_subset
+selection_rules:
+  max_personas_default: 3
+  load_role_cards_only_for_selected: true
+  prefer_bundled_role_cards: true
+  allow_upstream_full_read: on_demand
+  forbid_upstream_memory_import: true
+personas:
+  - id: aiox-master
+    family: aiox
+    summary: Safe orchestration subset of upstream aiox-master for decomposition, sequencing, and choosing the minimum viable team.
+    use_when:
+      - multi-step orchestration
+      - choose specialists
+      - plan phased execution
+      - coordinate architecture plus implementation plus review
+    avoid_when:
+      - tiny one-file changes
+      - direct implementation with no decomposition need
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/aiox-master.md
+    upstream_enrichment_triggers:
+      - framework-specific workflow behavior matters
+      - the user wants upstream-faithful aiox-master wording
+    load_card: references/role-cards/aiox-master.md
+
+  - id: aiox-analyst
+    family: aiox
+    summary: Research, discovery, framing, ideation, and evidence-based analysis before implementation.
+    use_when:
+      - study a repository
+      - discovery
+      - compare options
+      - map current behavior
+      - understand business or product context before coding
+    avoid_when:
+      - implementation-only tasks
+      - final code review with no discovery component
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/analyst.md
+    upstream_enrichment_triggers:
+      - ideation or strategic analysis depth matters
+      - research methodology from upstream is needed
+    load_card: references/role-cards/aiox-analyst.md
+
+  - id: aiox-architect
+    family: aiox
+    summary: Architecture, boundaries, interfaces, refactor strategy, and technical tradeoffs.
+    use_when:
+      - architecture
+      - refactor grande
+      - integration design
+      - context contamination analysis
+      - system boundaries
+      - dependency strategy
+    avoid_when:
+      - tiny isolated edits
+      - pure backlog prioritization
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/architect.md
+    upstream_enrichment_triggers:
+      - cross-stack, security, or performance tradeoffs need extra depth
+      - delegation boundaries to other roles matter
+    load_card: references/role-cards/aiox-architect.md
+
+  - id: aiox-dev
+    family: aiox
+    summary: Implementation, code changes, debugging, and practical delivery.
+    use_when:
+      - bugfix
+      - feature work
+      - patch implementation
+      - test fixes
+      - coding feasibility
+    avoid_when:
+      - strategy-only discussions
+      - broad product prioritization
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/dev.md
+    upstream_enrichment_triggers:
+      - strict minimal-context execution behavior matters
+      - upstream constraints on delivery or git behavior are relevant
+    load_card: references/role-cards/aiox-dev.md
+
+  - id: aiox-devops
+    family: aiox
+    summary: CI, release pipeline, environment, remote git operations, and operational guardrails.
+    use_when:
+      - ci-cd
+      - deployment
+      - pipeline changes
+      - environment setup
+      - build and release risk
+    avoid_when:
+      - local code-only fixes with no operational impact
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/devops.md
+    upstream_enrichment_triggers:
+      - remote git, PR, release, or push authority matters
+      - irreversible operational steps are under discussion
+    load_card: references/role-cards/aiox-devops.md
+
+  - id: aiox-pm
+    family: aiox
+    summary: Product strategy, PRD and epic shaping, prioritization, scope, and sequencing.
+    use_when:
+      - plan work
+      - phase a project
+      - scope definition
+      - prioritization
+      - roadmap or execution order
+    avoid_when:
+      - implementation-only tasks
+      - detailed code review
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/pm.md
+    upstream_enrichment_triggers:
+      - PRD, epic, or product strategy fidelity matters
+      - the task needs PM constraints on delegating to specialists
+    load_card: references/role-cards/aiox-pm.md
+
+  - id: aiox-po
+    family: aiox
+    summary: Story quality, requirement clarity, acceptance criteria, and backlog fitness.
+    use_when:
+      - write or validate stories
+      - acceptance criteria
+      - requirement quality
+      - backlog clarity
+    avoid_when:
+      - pure code implementation
+      - low-level infrastructure work
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/po.md
+    upstream_enrichment_triggers:
+      - process stewardship or documentation integrity matters
+      - detailed backlog governance is needed
+    load_card: references/role-cards/aiox-po.md
+
+  - id: aiox-qa
+    family: aiox
+    summary: Verification, regression risk, skeptical review, and quality gates.
+    use_when:
+      - code review
+      - regression analysis
+      - verify done work
+      - context hygiene audit
+      - risk review
+    avoid_when:
+      - initial discovery with no deliverable to verify
+      - backlog planning only
+    safe_subset: true
+    upstream_path: .aiox-core/development/agents/qa.md
+    upstream_enrichment_triggers:
+      - traceability, NFRs, or advisory gate language matters
+      - the user wants a more upstream-faithful QA posture
+    load_card: references/role-cards/aiox-qa.md
+
+excluded_roles:
+  - id: aiox-sm
+    upstream_path: .aiox-core/development/agents/sm.md
+    reason: Intentionally excluded from the curated subset because it is workflow-specific and not needed for the default Codex subagent bridge.
+
+  - id: aiox-data-engineer
+    upstream_path: .aiox-core/development/agents/data-engineer.md
+    reason: Intentionally excluded from the curated subset because it is specialized enough to load from upstream only when a project clearly needs it.
+
+  - id: aiox-ux-design-expert
+    upstream_path: .aiox-core/development/agents/ux-design-expert.md
+    reason: Intentionally excluded from the curated subset because the default bridge is focused on engineering and orchestration roles.

@@ -1,0 +1,360 @@
+# AI Skills Hub
+
+Hub central para manter um catalogo unico de skills e sincroniza-las para Claude, Codex, Qwen e Antigravity. Suporte a Gemini em desenvolvimento.
+
+## Estrutura
+
+```text
+AI-Skills-Hub/
+|-- all-skills/              # fonte da verdade
+|-- global-skills/           # conjunto global legado
+|-- ui/                      # interface web
+|-- manage-skills.ps1        # backend + CLI
+|-- skill-manager.bat        # launcher da UI
+|-- backups/                 # backups de seguranca
+`-- state/                   # estado local e checkouts auxiliares
+```
+
+## Uso rapido
+
+```powershell
+# Ver o estado geral
+.\manage-skills.ps1 status
+
+# Ativar skills globais
+.\manage-skills.ps1 enable-global -Skills napkin,doc,orchestrate
+.\manage-skills.ps1 reconcile
+
+# Sincronizar superpowers pelo fluxo nativo
+.\manage-skills.ps1 sync-native-superpowers
+.\manage-skills.ps1 sync-native-superpowers -Install -Force
+
+# Instalar o coletor de uso do Claude nos perfis
+.\manage-skills.ps1 sync-claude-usage-collector -Force
+```
+
+## UI
+
+1. Execute `skill-manager.bat`.
+2. Abra `http://localhost:8765`.
+3. Marque em quais agentes cada skill deve ficar instalada.
+
+O backend ja diferencia instalacoes gerenciadas de instalacoes nativas.
+
+### Painel Claude Auth
+
+Abra com `abrir-painel-claude-auth.bat` (porta 8766). Centraliza:
+
+- troca de perfil ativo com hot-swap (sem fechar o Claude Code)
+- autenticacao OAuth por perfil com links de login
+- status de uso (`5h`, `7d`, reset, custo, tokens) com barras de progresso
+- badge "EM USO" no perfil realmente ativo (detectado via resolucao da junction)
+- **meta-card "Token OAuth"** com validade restante do `accessToken` por perfil (decodificacao JWT em PowerShell puro; Claude e Codex)
+- **card "Em execucao"** com contagem de instancias Claude/Codex ativas e PIDs (resolvidos via `~/.claude-active-dir` e `~/.codex-active-profile`)
+- **aviso de cache rebuild** ao trocar perfil com sessoes ativas — modal de confirmacao antes de aplicar a troca
+- abas: **Claude** | **Codex/OpenAI** | **Gemini/Google** (em breve)
+- sub-abas dentro de Claude: Perfis | Status | Configuracoes
+- sub-abas dentro de Codex: Perfis | Status
+
+Fluxo recomendado para uso humano:
+
+1. abra `abrir-painel-claude-auth.bat`
+2. clique em `Iniciar Login` no perfil desejado
+3. copie ou abra o link OAuth
+4. para trocar de perfil durante uma conversa: clique em `Ativar` — a troca e imediata via junction
+
+**Endpoint extra:** `GET /api/runtime/instances` retorna `{ claude: { count, processes: [...] }, codex: {...} }` com PID, nome e perfil de cada processo em execucao.
+
+### Painel Codex
+
+O painel Codex (aba **Codex/OpenAI**) permite:
+
+- listar perfis Codex com status de uso (barras 5h e 7d)
+- trocar de conta ativa sem perder sessoes, historico ou threads
+- iniciar login de nova conta via terminal externo (`codex login`)
+- exibir ultimo uso por perfil e timestamp de atualizacao dos dados
+
+**Arquitetura de multi-perfil Codex:**
+
+```
+~/.codex/                      # diretorio compartilhado (sessions, history, state_5.sqlite)
+  auth.json                    # UNICO arquivo trocado na mudanca de perfil
+  sessions/                    # todas as conversas — compartilhadas entre perfis
+  history.jsonl                # historico global
+  state_5.sqlite               # 900+ threads SQLite
+
+~/.codex-profiles/
+  codex-a/
+    auth.json                  # credenciais da conta A (copiado para ~/.codex ao ativar)
+  codex-b/
+    auth.json                  # credenciais da conta B
+  active -> ~/.codex           # junction FIXA (nunca muda de destino)
+
+~/.codex-active-profile        # marker com nome do perfil ativo (ex: "codex-a")
+```
+
+Ao trocar de perfil, apenas `auth.json` e substituido em `~/.codex`. Todas as sessoes,
+historico e threads permanecem intactos — identico ao comportamento nativo do Codex CLI
+ao trocar de conta pela propria interface.
+
+**Dados de uso** sao lidos dos arquivos JSONL de sessao em `~/.codex/sessions/` — eventos
+`token_count` com `rate_limits.primary` (5h) e `rate_limits.secondary` (7d).
+
+### CLI `ai-skills`
+
+Wrapper de linha de comando que fala com o servidor HTTP do painel (porta 8766,
+fallback 8765). Instalado automaticamente pelo `setup-nova-maquina.ps1` em
+`~/.local/bin/ai-skills.cmd`.
+
+```powershell
+ai-skills list                     # perfis Claude (default)
+ai-skills list -Provider codex     # perfis Codex
+ai-skills switch-to claude-b       # troca perfil ativo
+ai-skills switch-to codex-b -Provider codex
+ai-skills status                   # status de ambos providers + execucao
+ai-skills instances                # processos Claude/Codex em execucao
+ai-skills rotate                   # forca rotacao Claude
+```
+
+Se o painel nao estiver aberto, a CLI sugere rodar `abrir-painel-claude-auth.bat`.
+
+### Rotacao Automatica de Perfis (auto-rotate)
+
+O sistema troca de perfil automaticamente quando o uso atinge 95% do limite (5h ou 7d).
+
+#### Claude
+
+**Arquitetura — Junction `active`:**
+
+```
+CLAUDE_CONFIG_DIR (fixo) → %USERPROFILE%\.claude-profiles\active\  (junction)
+                                          ↓
+                           %USERPROFILE%\.claude-profiles\claude-a\  (perfil real)
+```
+
+Ao trocar de perfil, o destino da junction e atualizado para apontar para o proximo perfil.
+O processo Claude Code em execucao le as credenciais do novo perfil na proxima chamada de API
+— sem precisar reiniciar.
+
+**Componentes:**
+
+- `auto-rotate.ps1` — verifica uso e recria a junction para o proximo perfil disponivel
+- `ClaudeAutoRotate` (Task Scheduler) — executa a cada 10 min, invisivel (`LogonType: S4U`)
+- `manage-skills.ps1 → Set-ClaudeProfileJunction` — funcao usada pelo painel e pelo auto-rotate
+- `~/.claude-active-dir` — marker sem BOM lido pelo PowerShell profile em novos terminais
+
+**Para forcar rotacao manualmente:**
+
+```powershell
+.\auto-rotate.ps1 -Force
+# ou via CLI (com painel aberto)
+ai-skills rotate
+```
+
+**Para recriar a junction apos reinstalacao:**
+
+```powershell
+# Bootstrap inicial (apenas uma vez)
+$activeLink = "$env:USERPROFILE\.claude-profiles\active"
+New-Item -ItemType Junction -Path $activeLink -Target "$env:USERPROFILE\.claude-profiles\claude-a"
+[System.Environment]::SetEnvironmentVariable("CLAUDE_CONFIG_DIR", $activeLink, "User")
+```
+
+#### Codex
+
+**Arquitetura — Auth-only swap:**
+
+```
+~/.codex-profiles/active  →  ~/.codex   (junction FIXA — nunca muda)
+```
+
+Ao trocar de perfil Codex, apenas `auth.json` e substituido. A junction permanece apontando
+para `~/.codex` — sessions e historico nunca sao movidos.
+
+**Componentes:**
+
+- `auto-rotate-codex.ps1` — verifica uso via JSONL de sessao e substitui auth.json
+- `CodexAutoRotate` (Task Scheduler) — executa a cada 10 min, invisivel
+- `manage-skills.ps1 → Set-CodexProfileJunction` — funcao de troca de perfil
+- `~/.codex-active-profile` — marker com nome do perfil ativo
+
+**Dados de uso lidos de:**
+
+```
+~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl
+  → evento token_count → payload.rate_limits.primary   (janela 5h)
+  → evento token_count → payload.rate_limits.secondary  (janela 7d)
+```
+
+**Para forcar rotacao manualmente:**
+
+```powershell
+.\auto-rotate-codex.ps1 -Force
+```
+
+## Setup inicial
+
+### Requisitos
+
+- Windows 10/11
+- PowerShell 5.1+
+- Claude Code CLI instalado
+- Codex CLI instalado (opcional, para aba Codex)
+- Node.js (para `codex-companion.mjs`)
+
+### Setup automatico (recomendado)
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-nova-maquina.ps1
+```
+
+O script cobre os 6 passos locais por maquina: junction Claude, junction Codex,
+`CLAUDE_CONFIG_DIR`, `CODEX_HOME`, Task Scheduler (`ClaudeAutoRotate` e
+opcionalmente `ClaudeAutoRotateCodex`) e shim `ai-skills` em `~/.local/bin`.
+
+Flags disponiveis:
+
+- `-DefaultClaudeProfile claude-a` — perfil Claude inicial (padrao `claude-a`)
+- `-DefaultCodexProfile codex-a` — perfil Codex inicial (padrao `codex-a`)
+- `-SkipCodex` — pula junction/`CODEX_HOME`
+- `-SkipScheduler` — pula registro das tarefas agendadas
+- `-SkipAiSkillsShim` — pula criacao do `ai-skills.cmd`
+
+Para detalhes e troubleshooting por passo, ver [SETUP-OUTRA-MAQUINA.md](./SETUP-OUTRA-MAQUINA.md).
+
+### Setup manual
+
+Se preferir executar passo a passo:
+
+```powershell
+# 1. Junction do Claude
+$activeLink = "$env:USERPROFILE\.claude-profiles\active"
+New-Item -ItemType Junction -Path $activeLink -Target "$env:USERPROFILE\.claude-profiles\claude-a"
+[System.Environment]::SetEnvironmentVariable("CLAUDE_CONFIG_DIR", $activeLink, "User")
+
+# 2. Estrutura Codex (junction FIXA apontando para ~/.codex)
+$codexProfiles = "$env:USERPROFILE\.codex-profiles"
+New-Item -ItemType Directory -Path "$codexProfiles\codex-a" -Force
+New-Item -ItemType Junction -Path "$codexProfiles\active" -Target "$env:USERPROFILE\.codex"
+Copy-Item "$env:USERPROFILE\.codex\auth.json" "$codexProfiles\codex-a\auth.json"
+"codex-a" | Set-Content "$env:USERPROFILE\.codex-active-profile" -NoNewline
+[System.Environment]::SetEnvironmentVariable("CODEX_HOME", "$codexProfiles\active", "User")
+
+# 3. Iniciar o painel
+.\abrir-painel-claude-auth.bat
+```
+
+### Tarefas agendadas
+
+O `setup-nova-maquina.ps1` ja registra `ClaudeAutoRotate` (e opcionalmente
+`ClaudeAutoRotateCodex`) com trigger a cada 10 min, `LogonType: S4U` (invisivel).
+Para registrar manualmente:
+
+```powershell
+$action  = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -File `"$PWD\auto-rotate.ps1`""
+$trigger = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes 10) -Once -At (Get-Date)
+Register-ScheduledTask -TaskName "ClaudeAutoRotate" -Action $action -Trigger $trigger -RunLevel Limited
+```
+
+## Directorios alvo
+
+- Claude: `%USERPROFILE%\.claude\skills`
+- Codex legacy: `%USERPROFILE%\.codex\skills`
+- Codex user: `%USERPROFILE%\.agents\skills`
+- Qwen: `%USERPROFILE%\.qwen\skills`
+- Antigravity: `%USERPROFILE%\.antigravity\skills`
+- Gemini: `%USERPROFILE%\.gemini\antigravity\skills` para legado reconstruido e `%USERPROFILE%\.gemini\extensions` para extensoes nativas _(suporte em desenvolvimento)_
+
+## Importacao GitHub
+
+O importador GitHub agora aceita apenas repositorios que tenham `SKILL.md` na raiz.
+
+Ele rejeita:
+
+- pacotes multi-skill
+- extensoes nativas
+- repositorios sem `SKILL.md` raiz
+
+Isso evita o problema de importar algo como `superpowers` como se fosse uma skill unica quebrada.
+
+## Integracoes nativas
+
+Pacotes como `superpowers` devem ser tratados por mecanismo nativo do agente:
+
+- Claude: marketplace ou plugin oficial
+- Codex: skill packs sincronizados para os diretorios nativos
+- Gemini: `extensions link` ou `extensions install` _(em desenvolvimento)_
+
+O comando `sync-native-superpowers` centraliza esse fluxo no hub.
+
+## Orquestracao Claude + Codex
+
+A skill [`orchestrate`](./all-skills/orchestrate/SKILL.md) foi atualizada para o fluxo:
+
+- Claude planeja
+- Codex executa
+- Claude valida quando necessario
+
+Ela inclui:
+
+- wrapper Windows para perfis Claude com `CLAUDE_CONFIG_DIR`
+- failover reativo por cota
+- handoff estruturado de baixo contexto
+- selecao explicita de modelo para planejamento, execucao e validacao
+- suporte a ate `10` perfis Claude no mesmo usuario
+- painel de login e uso com observabilidade local
+- documentacao de instalacao nativa
+
+Detalhamento completo em `all-skills/orchestrate/references/claude-auth-control-plane.md`.
+
+## Dicas
+
+- Edite skills sempre em `all-skills/`, nunca direto no destino nativo se ele for junction.
+- Use `reconcile` depois de alterar selecao global ou estado gerenciado.
+- Para PowerShell com politica restritiva, prefira `powershell -ExecutionPolicy Bypass -File ...` ao rodar wrappers `.ps1`.
+
+## Robustez
+
+### Atomic writes
+
+Todas as escritas em arquivos sensiveis (`.credentials.json`, `auth.json`,
+`settings.json`, `.claude.json`, markers `active-dir` / `active-profile`,
+`config.json` do orquestrador) passam pelos helpers `Set-FileAtomic` e
+`Set-JsonFileAtomic` em `manage-skills.ps1`: escreve em `tmp-<guid>`, valida o
+JSON reparseando, move atomicamente para o destino. Em caso de crash no meio
+da operacao, o arquivo original permanece intacto.
+
+`Add-ClaudeProfile` e `Add-CodexProfile` tambem fazem rollback (remove diretorio
+criado + reverte append em config) se qualquer passo falhar.
+
+### HTTP listener resiliente
+
+O servidor HTTP do painel usa `try/catch` aninhado em cada handler com fallback
+para `response.Abort()` quando headers ja foram enviados, evitando que excecoes
+em um request derrubem o listener inteiro.
+
+## Troubleshooting
+
+### Skill marcada como global/instalada na UI mas nao aparece no Claude Code
+
+**Sintoma:** O gerenciador mostra a skill como ativa, mas ao tentar chamar `/skill-name` no Claude Code ele diz que nao encontrou.
+
+**Causa:** O gerenciador **nao sincroniza automaticamente ao iniciar**. As junctions no sistema de arquivos so sao (re)criadas quando voce interage com a UI (instalar, desinstalar, toggle global). Se o hub foi movido de pasta, ou se as junctions foram perdidas por qualquer motivo, o estado JSON fica correto mas os arquivos ficam desatualizados.
+
+**Solucao — uma unica vez resolve:**
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File "C:\Users\marce\Diego\AI-Skills-Hub\manage-skills.ps1" reconcile
+```
+
+Depois reinicie o Claude Code para ele recarregar as skills.
+
+**Quando rodar reconcile novamente?** Somente se voce mover o hub de pasta novamente, ou se perceber que junctions sumiram. Em uso normal (adicionar/remover skills pela UI), voce **nao precisa rodar reconcile manualmente** — a UI ja faz isso automaticamente.
+
+### Hub foi movido de pasta e skills sumiram em massa
+
+Se voce moveu a pasta `AI-Skills-Hub` de lugar (ex: `Desktop` para `Diego`), as junctions antigas apontam para o caminho antigo e quebram. Rode `reconcile` uma unica vez para recriar tudo:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File "<novo-caminho>\AI-Skills-Hub\manage-skills.ps1" reconcile
+```

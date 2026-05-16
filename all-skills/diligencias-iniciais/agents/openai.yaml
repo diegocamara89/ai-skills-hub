@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diligencias Iniciais"
+  short_description: "Planeja diligencias policiais por fase e tipo penal"
+  default_prompt: "Use esta skill para diagnosticar lacunas probatorias e construir plano de diligencias por prioridade, fase investigativa e fundamento legal aplicavel."

@@ -1,0 +1,52 @@
+{
+  "profile": "claude-b",
+  "sessionId": "session-2",
+  "observedAt": "2026-04-01T11:00:00Z",
+  "firstSeenAt": "2026-04-01T11:00:00Z",
+  "lastSeenAt": "2026-04-01T11:00:00Z",
+  "transcriptPath": "",
+  "cwd": "",
+  "workspace": {
+    "currentDir": "",
+    "projectDir": ""
+  },
+  "model": {
+    "id": "claude-sonnet-4-6",
+    "displayName": "Sonnet"
+  },
+  "version": "",
+  "outputStyle": {
+    "name": ""
+  },
+  "agent": {
+    "name": ""
+  },
+  "worktree": {
+    "name": "",
+    "path": "",
+    "branch": "",
+    "originalCwd": "",
+    "originalBranch": ""
+  },
+  "cost": {
+    "totalCostUsd": 0.75,
+    "totalDurationMs": 0,
+    "totalApiDurationMs": 0,
+    "totalLinesAdded": 0,
+    "totalLinesRemoved": 0
+  },
+  "contextWindow": {
+    "totalInputTokens": 0,
+    "totalOutputTokens": 0,
+    "contextWindowSize": 0,
+    "usedPercentage": 22.0,
+    "remainingPercentage": 0.0,
+    "currentUsage": {}
+  },
+  "rateLimits": {
+    "fiveHour": {},
+    "sevenDay": {}
+  },
+  "rateLimitsSeenAt": "",
+  "exceeds200kTokens": false
+}
