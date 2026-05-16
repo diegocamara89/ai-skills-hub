@@ -86,11 +86,17 @@ Rejeita:
 
 Para pacotes multi-skill como `superpowers`, use `sync-native-superpowers`.
 
+## Shims (CLI global)
+
+`setup.ps1` cria shim `~/.local/bin/ai-skills.cmd` que aponta para o `ai-skills.ps1` do Hub. Tendo `~/.local/bin/` no PATH do usuário, você pode rodar `ai-skills <cmd>` de qualquer lugar — mas ele é um wrapper HTTP (precisa do painel rodando em :8765). Para uso standalone (sem painel), invoque `manage-skills.ps1` diretamente.
+
 ## Tests
 
 ```powershell
 Invoke-Pester -Path tests -Output Detailed
 ```
+
+Baseline atual: 26 tests pass (FrontmatterValidator + SkillLockfile + UpstreamImporter).
 
 ## Dependências
 
@@ -101,6 +107,12 @@ Invoke-Pester -Path tests -Output Detailed
 
 ## Issues conhecidas (pós-split)
 
-- **#1:** Refatorar `manage-skills.ps1` em módulos `.psm1` (extração incremental por função, com testes Pester em PRs separados).
-- **#2:** Distribuição via package manager (winget/scoop).
-- **#3:** Cross-platform support (atual: Windows-first).
+- **#1:** Refatorar `manage-skills.ps1` em módulos `.psm1` (extração incremental por função, com testes Pester em PRs separados). O plano original previa big-bang; pivot escolheu cópia integral + extração incremental pós-split — ver `docs/superpowers/plans/2026-05-16-split-skills-hub-octane-implementation.md`.
+- **#2:** CLI standalone — `ai-skills.ps1` é wrapper HTTP. Refatorar para chamar funções core diretamente sem precisar de painel rodando.
+- **#3:** Distribuição via package manager (winget/scoop).
+- **#4:** Cross-platform support (atual: Windows-first).
+
+## Backup da migração 2026-05-16
+
+- Snapshot completo dos perfis em `~\.profile-backups\2026-05-16-1237-fase0\` e `~\.profile-backups\2026-05-16-1322-fase35\` (~880MB)
+- Código pré-split commit `00ea5aa` preservado na branch `archive/monolith-v1` deste repo
