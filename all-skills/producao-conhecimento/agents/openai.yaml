@@ -1,0 +1,4 @@
+interface:
+  display_name: "Producao de Conhecimento"
+  short_description: "Gera produtos de inteligencia policial estruturados"
+  default_prompt: "Use esta skill para produzir relatorios e notas de inteligencia policial, ficha de alvo, mapa de vinculos e outros produtos tecnicos com estrutura profissional."

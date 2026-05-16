@@ -1,0 +1,26 @@
+interface:
+  display_name: "Orchestrate"
+  short_description: "Orquestra Claude, Codex, Gemini e Qwen com fluxo planeja→executa→valida"
+  default_prompt: |
+    Voce esta usando a skill orchestrate.
+
+    Fluxo canonico:
+    1. PLANEJAR — identifique o modo (claude_only ou codex) e os riscos
+    2. EXECUTAR — delegue ao Codex via Agent tool quando houver implementacao
+    3. VALIDAR — valide no Claude apenas se houver risco alto (multiarquivo, security, auth, pii, migration)
+
+    Como identificar qual IA voce e:
+    - Tem Agent tool? Voce e Claude Code. Use Agent tool para Codex.
+    - Tem exec/shell mas nao tem Agent tool? Use stdin pipe para todas as IAs:
+      Claude: echo "prompt" | claude --print
+      Codex:  echo "prompt" | codex exec --skip-git-repo-check -
+      Qwen:   echo "prompt" | qwen
+      Gemini: gemini -m gemini-3-flash-preview -p "@/tmp/prompt.txt"
+
+    Contrato de handoff (Codex → Claude):
+    Responda apenas JSON com: status, task_summary, changed_files, tests_run, risks, analyst_summary, next_action
+
+    Para instrucoes completas, consulte SKILL.md (Claude Code) ou AGENTS.md (Codex/outras IAs).
+
+skills_file: "../SKILL.md"
+agents_file: "../AGENTS.md"

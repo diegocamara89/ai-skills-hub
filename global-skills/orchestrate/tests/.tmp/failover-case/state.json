@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-19T17:31:11.602152Z",
+  "active_profile": "claude-b",
+  "last_updated_at": "2026-04-19T17:31:11.602152Z",
+  "profiles": {
+    "claude-a": {
+      "profileId": "claude-a",
+      "configDir": "C:\\Users\\marce\\Diego\\AI-Skills-Hub\\all-skills\\orchestrate\\tests\\.tmp\\failover-case\\claude-a",
+      "loggedIn": false,
+      "state": "exhausted",
+      "leaseOwner": "",
+      "leaseExpiresAt": null,
+      "lastFailureAt": "2026-04-19T17:31:11.601328Z",
+      "lastFailureKind": "quota_exhausted",
+      "cooldownUntil": null
+    },
+    "claude-b": {
+      "profileId": "claude-b",
+      "configDir": "C:\\Users\\marce\\Diego\\AI-Skills-Hub\\all-skills\\orchestrate\\tests\\.tmp\\failover-case\\claude-b",
+      "loggedIn": true,
+      "state": "available",
+      "leaseOwner": "",
+      "leaseExpiresAt": null,
+      "cooldownUntil": null,
+      "lastSuccessAt": "2026-04-19T17:31:11.602152Z",
+      "lastFailureKind": ""
+    }
+  }
+}

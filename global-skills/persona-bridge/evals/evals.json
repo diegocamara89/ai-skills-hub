@@ -1,0 +1,23 @@
+{
+  "skill_name": "persona-bridge",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use as personas do AIOX para estudar este repositorio e monte a menor equipe de subagentes possivel para analisar arquitetura e risco de contexto.",
+      "expected_output": "Lê primeiro o selector leve, escolhe poucas personas, carrega só os cards escolhidos e evita carregar o framework inteiro.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Quero que voce implemente uma feature simples aqui. Escolha so as personas necessarias para execucao e verificacao.",
+      "expected_output": "Escolhe aiox-dev e possivelmente aiox-qa, sem chamar aiox-master sem necessidade.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Quero usar os agentes do Xquads, mas sem poluir o contexto do chat. Como voce faria isso com subagentes nativos?",
+      "expected_output": "Explica a abordagem em camadas: trigger da skill, selector leve, cards sob demanda e upstream completo apenas sob demanda.",
+      "files": []
+    }
+  ]
+}

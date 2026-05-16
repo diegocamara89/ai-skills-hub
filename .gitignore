@@ -1,0 +1,70 @@
+# Estado e sessões (dados de runtime, não versionáveis)
+# state/ é versionada parcial — só superpowers/ e managed-targets.json
+state/native-integrations/
+state/claude-auth/
+state/instagram-reels-triage/
+state/omniroute/
+state/tmp-auth-profile/
+
+# Exportações e backups
+exports/
+backups/
+backups-desktop-legacy/
+
+# Diretórios temporários
+tmp-*/
+tmp-*
+
+# Credenciais e tokens OAuth
+*.credentials.json
+.credentials.json
+auth.json
+*.token
+*.tokens
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Cache de testes
+.pytest_cache/
+
+# Bancos de dados locais
+*.sqlite
+*.db
+*.sqlite-shm
+*.sqlite-wal
+
+# Python venvs
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Node modules
+node_modules/
+
+# Syncthing
+.stfolder/
+.stignore
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Sync conflicts
+*.sync-conflict-*
+
+# Skill com junction circular (corrompida)
+all-skills/relatorio-final-ip/
+
+# Migration artifacts
+preflight-results.json
+cutover-pre-*.txt
+cutover-post-*.txt
+pester-baseline.json
+pester-fase*.json

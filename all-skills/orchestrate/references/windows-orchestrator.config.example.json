@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "claude_base_dir": "%USERPROFILE%\\.claude",
+  "profile_root": "%USERPROFILE%\\.claude-profiles",
+  "state_file": "%USERPROFILE%\\.claude-orchestrator\\state.json",
+  "shared_claude_subdirs": [
+    "skills",
+    "plugins",
+    "commands"
+  ],
+  "shared_claude_files": [
+    "settings.json",
+    "trustedFolders.json"
+  ],
+  "profiles": [
+    {
+      "name": "claude-a",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-a"
+    },
+    {
+      "name": "claude-b",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-b"
+    },
+    {
+      "name": "claude-c",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-c"
+    },
+    {
+      "name": "claude-d",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-d"
+    },
+    {
+      "name": "claude-e",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-e"
+    },
+    {
+      "name": "claude-f",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-f"
+    },
+    {
+      "name": "claude-g",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-g"
+    },
+    {
+      "name": "claude-h",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-h"
+    },
+    {
+      "name": "claude-i",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-i"
+    },
+    {
+      "name": "claude-j",
+      "config_dir": "%USERPROFILE%\\.claude-profiles\\claude-j"
+    }
+  ],
+  "commands": {
+    "claude": {
+      "path": "%LOCALAPPDATA%\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude\\claude-code\\2.1.72\\claude.exe"
+    },
+    "codex": {
+      "path": "%APPDATA%\\npm\\codex.cmd"
+    },
+    "gemini": {
+      "path": "%APPDATA%\\npm\\gemini.cmd"
+    },
+    "qwen": {
+      "path": "%APPDATA%\\npm\\qwen.cmd"
+    }
+  },
+  "quota_patterns": [
+    "quota exceeded",
+    "usage limit reached",
+    "rate limit reached",
+    "rate limit exceeded",
+    "monthly usage limit",
+    "daily usage limit",
+    "too many requests"
+  ],
+  "validation": {
+    "max_changed_files_without_validation": 3,
+    "require_tests_when_files_change": true,
+    "always_validate_flags": [
+      "security",
+      "auth",
+      "privacy",
+      "pii",
+      "migration",
+      "schema",
+      "billing",
+      "infra",
+      "refactor",
+      "multi-file"
+    ]
+  }
+}
