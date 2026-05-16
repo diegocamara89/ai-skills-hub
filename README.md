@@ -34,11 +34,14 @@ skill-hub/
 ## Quickstart
 
 ```powershell
-git clone https://github.com/diegocamara89/ai-skills-hub.git C:\Users\<you>\Diego\skill-hub
-cd C:\Users\<you>\Diego\skill-hub
+# Em máquina nova: clone para o nome canônico
+git clone https://github.com/diegocamara89/ai-skills-hub.git C:\Users\<you>\Diego\ai-skills-hub
+cd C:\Users\<you>\Diego\ai-skills-hub
 .\setup.ps1
 .\manage-skills.ps1 status
 ```
+
+> Na máquina do autor, o folder local se chama `skill-hub` (não `ai-skills-hub`) como mitigação temporária da colisão case-insensitive com o folder legado `AI-Skills-Hub` durante a migração. Após arquivamento do legado, o folder pode ser renomeado para `ai-skills-hub` para casar com o repo GitHub. **Em máquinas novas, use o nome canônico (`ai-skills-hub`) direto** — não há colisão.
 
 ## Comandos principais
 
